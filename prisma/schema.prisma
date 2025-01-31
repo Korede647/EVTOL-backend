@@ -30,8 +30,8 @@ model eVTOLDevice {
 model Medication {
   id             Int         @unique @default(autoincrement())
   name           String
-  evtolDevice    eVTOLDevice @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
-  evtol_serialNo String
+  evtolDevice    eVTOLDevice? @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
+  evtol_serialNo String?
   weight         Float
   code           String      @unique
   image          String

@@ -22,7 +22,7 @@ export class EvtolServiceImpl implements EvtolService {
       );
     }
 
-    const user = await db.eVTOLDevice.create({
+    const evtol = await db.eVTOLDevice.create({
       data: {
         serialNo: data.serialNo,
         model: data.model,
@@ -31,8 +31,36 @@ export class EvtolServiceImpl implements EvtolService {
         status: data.status,
       },
     });
-    return user;
+    return evtol;
   }
+
+  async createMedication(data: CreateMedicationDTO): Promise<Medication> {
+    const isMedicExist = await db.medication.findUnique({
+      where: {
+         code: data.code
+      },
+    });
+    if (isMedicExist) {
+      throw new CustomError(
+        StatusCodes.CONFLICT,
+        "Oops! A medication with this code already exists."
+      );
+    }
+    if (!data.image) {
+        throw new CustomError(StatusCodes.BAD_REQUEST, "Medication image is required.");
+    }
+
+    const medication = await db.medication.create({
+      data: {
+        name: data.name,
+        weight: data.weight,
+        code: data.code,
+        image: data.image,
+      }
+    });
+    return medication;
+  }
+
   async loadEvtolWithMedication(
     EvtolSerialNo: string,
     medications: CreateMedicationDTO[]
@@ -119,7 +147,7 @@ export class EvtolServiceImpl implements EvtolService {
     return evtol.medications
 
   }
-  
+
   async getAvailableEvtol(): Promise<eVTOLDevice[]> {
     const availableEvtol = await db.eVTOLDevice.findMany({
         where: {

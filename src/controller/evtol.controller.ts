@@ -25,6 +25,29 @@ export class EvtolController{
         }
     }
 
+    public createMedic = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const {name, weight, code} = req.body as CreateMedicationDTO;
+            const imageUrl = req.file?.path || ""
+            const newMedic = await this.evtolservice.createMedication({
+                name, 
+                weight,
+                code,
+                image: imageUrl
+            });
+            res.status(201).json({
+                message: "Medication created successfully.",
+                data: newMedic,
+            });
+        }catch (error){
+            next(error);
+        }
+    }
+
     public loadEvtolWithMedications = async(
         req: Request,
         res: Response,
