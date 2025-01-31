@@ -15,23 +15,35 @@ datasource db {
 
 model eVTOLDevice {
   id              Int      @id @default(autoincrement())
-  serialNo        String
+  serialNo        String   @unique
   model           MODEL
-  weightLimit     Float?    @default(500.0)
-  batteryCapacity Float?    @default(100.0)
+  weightLimit     Float    @default(500.0)
+  batteryCapacity Float    @default(100.0)
   status          STATUS   @default(IDLE)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  batteryHistory BatteryHistory[]
+  medications    Medication[]
 }
 
 model Medication {
-  id        Int      @unique @default(autoincrement())
-  name      String
-  weight    String
-  code      String
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int         @unique @default(autoincrement())
+  name           String
+  evtolDevice    eVTOLDevice @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
+  evtol_serialNo String
+  weight         Float
+  code           String      @unique
+  image          String
+  createdAt      DateTime    @default(now())
+}
+
+model BatteryHistory {
+  id             Int         @id @default(autoincrement())
+  evtolDevice    eVTOLDevice @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
+  evtol_serialNo String
+  batteryLog     String
+  createdAt      DateTime    @default(now())
 }
 
 enum MODEL {

@@ -3,14 +3,14 @@ import { IsNotEmpty, Length } from "class-validator";
 export class CreateMedicationDTO {
     @IsNotEmpty()
     @Length(2, 70)
-    name!: String
+    name!: string
 
     @IsNotEmpty()
-    weight!: String
+    weight!: number
 
     @IsNotEmpty()
-    code!: String
+    code!: string
 
     @IsNotEmpty()
-    image!: String
+    image!: string
 }
