@@ -68,4 +68,18 @@ export class EvtolController{
             next(error)
         }
     }
+
+    public getBatteryLevel = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtolSN = req.params.serialNo;
+            const evtol = await this.evtolservice.getBatteryLevel(evtolSN)
+            res.status(201).json(evtol)
+        }catch(error){
+            next(error)
+        }
+    }
 }

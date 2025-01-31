@@ -7,5 +7,5 @@ export interface EvtolService{
     loadEvtolWithMedication(EvtolSerialNo: string, medications: CreateMedicationDTO[]): Promise<eVTOLDevice>
     getLoadedMedications(EvtolSerialNo: string): Promise<Medication[]>
     getAvailableEvtol(): Promise<eVTOLDevice[]>
-    getBatteryLevel(EvtolId: number): Promise<number>
+    getBatteryLevel(EvtolSerialNo: string): Promise<number>
 }

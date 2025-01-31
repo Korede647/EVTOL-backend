@@ -42,7 +42,7 @@ model BatteryHistory {
   id             Int         @id @default(autoincrement())
   evtolDevice    eVTOLDevice @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
   evtol_serialNo String
-  batteryLog     String
+  batteryLevel   Float
   createdAt      DateTime    @default(now())
 }
 

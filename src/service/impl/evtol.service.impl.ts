@@ -119,6 +119,7 @@ export class EvtolServiceImpl implements EvtolService {
     return evtol.medications
 
   }
+  
   async getAvailableEvtol(): Promise<eVTOLDevice[]> {
     const availableEvtol = await db.eVTOLDevice.findMany({
         where: {
@@ -128,7 +129,19 @@ export class EvtolServiceImpl implements EvtolService {
     })
     return availableEvtol;
   }
-  async getBatteryLevel(EvtolId: number): Promise<number> {
-    throw new Error("Method not implemented.");
+
+  async getBatteryLevel(EvtolSerialNo: string): Promise<number> {
+    const evtol = await db.eVTOLDevice.findUnique({
+        where: {
+            serialNo: EvtolSerialNo,
+        },
+        include:{
+            batteryHistory: true
+        }
+    })
+    if(!evtol){
+        throw new CustomError(StatusCodes.NOT_FOUND, "EVTOL Device not found")
+    }
+    return evtol.batteryCapacity
   }
 }
