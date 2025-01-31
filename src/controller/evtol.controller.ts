@@ -40,4 +40,32 @@ export class EvtolController{
             next(error)
         }
     }
+
+    public getLoadedMedications = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtol = req.params.serialNo;
+            const getMedications = await this.evtolservice.getLoadedMedications(evtol)
+
+            res.status(201).json(getMedications);
+        }catch(error){
+            next(error)
+        }
+    }
+
+    public getAvailableEvtol = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtols = await this.evtolservice.getAvailableEvtol()
+            res.status(201).json(evtols)
+        }catch(error){
+            next(error)
+        }
+    }
 }

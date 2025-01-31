@@ -5,6 +5,8 @@ const evtolcontroller = new EvtolController
 const evtolRoutes = express.Router();
 
 evtolRoutes.post("/", evtolcontroller.createEvtol)
-evtolRoutes.post("/loadEvtol", evtolcontroller.loadEvtolWithMedications)
+evtolRoutes.post("/loadEvtol/:S/N", evtolcontroller.loadEvtolWithMedications)
+evtolRoutes.get("/loadedMedication/:S/N", evtolcontroller.getLoadedMedications)
+evtolRoutes.get("/", evtolcontroller.getAvailableEvtol)
 
 export default evtolRoutes;

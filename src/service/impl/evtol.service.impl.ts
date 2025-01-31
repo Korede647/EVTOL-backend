@@ -1,4 +1,4 @@
-import { eVTOLDevice, Medication, PrismaClient } from "@prisma/client";
+import { eVTOLDevice, Medication, PrismaClient, STATUS } from "@prisma/client";
 import { CreateEvtolDTO } from "../../dto/createEvtol.dto";
 import { CreateMedicationDTO } from "../../dto/createMedication.dto";
 import { EvtolService } from "../evtol.service";
@@ -65,7 +65,7 @@ export class EvtolServiceImpl implements EvtolService {
     if (totalWeight > evtol.weightLimit) {
       throw new CustomError(
         StatusCodes.BAD_REQUEST,
-        "Medication Load exceeds EVTOL Limit."
+        "Medication Weight exceeds EVTOL Weight Limit."
       );
     }
 
@@ -104,23 +104,29 @@ export class EvtolServiceImpl implements EvtolService {
 
   async getLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
 
-    // const evtol = await db.eVTOLDevice.findFirst({
-    //     where: {
-    //         serialNo: EvtolSerialNo,
-    //     },
-    //     include: {
-    //         medications: true,
-    //     },
-    // })
-    // if(!evtol){
-    //     throw new CustomError(StatusCodes.NOT_FOUND, "Evtol Device not Found");
-    // }
+    const evtol = await db.eVTOLDevice.findFirst({
+        where: {
+            serialNo: EvtolSerialNo,
+        },
+        include: {
+            medications: true,
+        },
+    })
+    if(!evtol){
+        throw new CustomError(StatusCodes.NOT_FOUND, "Evtol Device not Found");
+    }
 
-    // return evtol.medications
+    return evtol.medications
 
   }
-  async getAvailableEvtol(): Promise<EvtolService> {
-    throw new Error("Method not implemented.");
+  async getAvailableEvtol(): Promise<eVTOLDevice[]> {
+    const availableEvtol = await db.eVTOLDevice.findMany({
+        where: {
+            status: STATUS.IDLE,
+            batteryCapacity: { gte: 25 }
+        },
+    })
+    return availableEvtol;
   }
   async getBatteryLevel(EvtolId: number): Promise<number> {
     throw new Error("Method not implemented.");
