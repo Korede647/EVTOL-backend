@@ -1,5 +1,7 @@
 import express from "express";
 import evtolRoutes from "./routes/evtol.route";
+import { checkBatteryLevel } from "./middleware/evtolBatteryLevel.middleware";
+import { errorHandler } from "./utils/errorHandler.utils";
 
 const portEnv = process.env.PORT
 if(!portEnv){
@@ -23,3 +25,12 @@ const corsOptions = {
 }
 
 app.use("/api/v1/evtol", evtolRoutes)
+
+app.use(errorHandler)
+
+setInterval(checkBatteryLevel, 10 * 60 * 100)
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    
+});
