@@ -1,0 +1,42 @@
+## EVTOL Backend API
+
+## Overview
+
+The EVTOL Backend API is a RESTful API that provides a set of endpoints for managing EVTOL. It includes features for:
+
+- Creating and managing EVTOL devices.
+- Uploading and storing Medications.
+- Loading medications into EVTOLs.
+- Retrieving loaded medications.
+- Checking Battery Level of EVTOL.
+
+API ENDPOINTS
+
+POST / - Create EVTOL device
+
+POST /createMedic -
+ Upload Medication with image
+ Form-Data{
+    name: string
+    weight: float
+    code: string
+    medicImage: file(JPG, JPEG, PNG)
+ }
+
+POST /loadEvtol/:serialNo - 
+Load Medication into EVTOL
+Form-Data{
+    serialNo: string
+    medications: []
+}
+
+GET /loadedMedication/:serialNo - Get loaded Medication
+GET /batteryLevel/:serialNo - Get Battery Level of EVTOL
+GET / - Get available EVTOLs
+GET /:serialNo - Get EVTOL details
+
+**.env**
+Environment variables that storage and functionality of project depends on.
+
+DB variables & Database URL => Connection to postgres database for storage of collected and preloaded data
+Cloudinary Environment variable => Provider for plug in to upload images for medications. 
