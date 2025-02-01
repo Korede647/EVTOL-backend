@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import evtolRoutes from "./routes/evtol.route";
 import { checkBatteryLevel } from "./middleware/evtolBatteryLevel.middleware";
 import { errorHandler } from "./utils/errorHandler.utils";
@@ -23,6 +24,9 @@ const corsOptions = {
     allowedHeaders: "*",
     methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
 }
+
+app.use(cors(corsOptions));
+app.use(express.json());
 
 app.use("/api/v1/evtol", evtolRoutes)
 

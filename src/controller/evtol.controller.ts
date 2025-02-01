@@ -32,10 +32,15 @@ export class EvtolController{
     ): Promise<void> => {
         try{
             const {name, weight, code} = req.body as CreateMedicationDTO;
-            const imageUrl = req.file?.path || ""
+            const imageUrl = req.file ? req.file?.path: ""
+
+            if (!imageUrl) {
+                res.status(400).json({ message: "Medication image is required." });
+            }
+    
             const newMedic = await this.evtolservice.createMedication({
                 name, 
-                weight,
+                weight: Number(weight),
                 code,
                 image: imageUrl
             });
