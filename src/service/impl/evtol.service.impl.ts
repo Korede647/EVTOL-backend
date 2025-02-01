@@ -6,8 +6,6 @@ import { db } from "../../config/db";
 import { CustomError } from "../../exceptions/customError.error";
 import { StatusCodes } from "http-status-codes";
 
-const prisma = new PrismaClient();
-
 export class EvtolServiceImpl implements EvtolService {
  async getEvtolBySN(serialNo: string): Promise<eVTOLDevice | null> {
     const evtol = await db.eVTOLDevice.findUnique({
@@ -210,6 +208,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     if(!evtol){
         throw new CustomError(StatusCodes.NOT_FOUND, "EVTOL Device not found")
     }
+  
     return evtol.batteryCapacity
   }
 }

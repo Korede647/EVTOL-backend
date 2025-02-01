@@ -87,14 +87,14 @@ export class EvtolController{
         next: NextFunction
     ): Promise<void> => {
         try{
-            const evtol = req.params.serialNo;
-            const medication = req.body;
+            // const evtol = req.params.serialNo;
+            const {serialNo, medications} = req.body ;
 
-            if (!evtol || !medication || !Array.isArray(medication)) {
+            if (!serialNo || !medications || !Array.isArray(medications)) {
                 res.status(400).json({ message: "Invalid input data" });
               }
 
-            const loadEvtol = await this.evtolservice.loadEvtolWithMedication(evtol, medication);
+            const loadEvtol = await this.evtolservice.loadEvtolWithMedication(serialNo, medications);
             
             res.status(201).json({
              message: "EVTOL successfully loaded",

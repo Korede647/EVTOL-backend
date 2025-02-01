@@ -7,12 +7,12 @@ const evtolRoutes = express.Router();
 
 evtolRoutes.post("/", evtolcontroller.createEvtol)
 evtolRoutes.post("/createMedic", uploadToCloudinaryMedicImage, evtolcontroller.createMedic)
-evtolRoutes.post("/loadEvtol/:S/N", evtolcontroller.loadEvtolWithMedications)
+evtolRoutes.post("/loadEvtol/:serialNo", evtolcontroller.loadEvtolWithMedications)
 
-evtolRoutes.get("/allEvtol", evtolcontroller.getAllEvtol)
-evtolRoutes.get("/:SN", evtolcontroller.getEvtolBySN)
-evtolRoutes.get("/loadedMedication/:S/N", evtolcontroller.getLoadedMedications)
+evtolRoutes.get("/all", evtolcontroller.getAllEvtol)
+evtolRoutes.get("/:serialNo", evtolcontroller.getEvtolBySN)
+evtolRoutes.get("/:serialNo/loadedMedication/", evtolcontroller.getLoadedMedications)
 evtolRoutes.get("/", evtolcontroller.getAvailableEvtol)
-evtolRoutes.get("/betteryLevel/:S/N", evtolcontroller.getBatteryLevel)
+evtolRoutes.get("/:serialNo/batteryLevel/", evtolcontroller.getBatteryLevel)
 
 export default evtolRoutes;
