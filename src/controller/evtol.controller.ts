@@ -53,6 +53,19 @@ export class EvtolController{
         }
     }
 
+    public getAllMedic = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtols = await this.evtolservice.getAllMedications()
+                res.status(400).json(evtols)
+        }catch(error){
+            next(error)
+        }
+    }
+
     public getAllEvtol = async(
         req: Request,
         res: Response,

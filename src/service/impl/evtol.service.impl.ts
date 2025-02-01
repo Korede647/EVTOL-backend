@@ -96,6 +96,9 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return medication;
   }
 
+  async getAllMedications(): Promise<Medication[]> {
+      return await db.medication.findMany();
+  }
   
 
   async loadEvtolWithMedication(

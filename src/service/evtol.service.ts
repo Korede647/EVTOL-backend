@@ -8,8 +8,9 @@ export interface EvtolService{
     getAllEvtol(): Promise<eVTOLDevice[]>
     updateEvtol(serialNo: string, data: Partial<CreateEvtolDTO>): Promise<eVTOLDevice>
     deleteEvtol(serialNo: string): Promise<void>
-    
+
     createMedication(data: CreateMedicationDTO): Promise<Medication>
+    getAllMedications(): Promise<Medication[]>
     loadEvtolWithMedication(EvtolSerialNo: string, medicCodes: string[]): Promise<eVTOLDevice>
     getLoadedMedications(EvtolSerialNo: string): Promise<Medication[]>
     getAvailableEvtol(): Promise<eVTOLDevice[]>
