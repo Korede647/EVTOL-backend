@@ -53,6 +53,34 @@ export class EvtolController{
         }
     }
 
+    public getAllEvtol = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtols = await this.evtolservice.getAllEvtol()
+            res.status(400).json(evtols)
+        }catch(error){
+            next(error)
+        }
+    }
+
+
+    public getEvtolBySN = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtol = req.params.serialNo;
+            const singleEvtol = await this.evtolservice.getEvtolBySN(evtol)
+        }catch(error){
+            next(error)
+        }
+    }
+
+
     public loadEvtolWithMedications = async(
         req: Request,
         res: Response,
@@ -60,10 +88,18 @@ export class EvtolController{
     ): Promise<void> => {
         try{
             const evtol = req.params.serialNo;
-            const medication = req.body as CreateMedicationDTO[];
+            const medication = req.body;
+
+            if (!evtol || !medication || !Array.isArray(medication)) {
+                res.status(400).json({ message: "Invalid input data" });
+              }
+
             const loadEvtol = await this.evtolservice.loadEvtolWithMedication(evtol, medication);
             
-            res.status(201).json(loadEvtol);
+            res.status(201).json({
+             message: "EVTOL successfully loaded",
+             data: loadEvtol
+            });
         }catch(error){
             next(error)
         }

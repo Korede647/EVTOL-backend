@@ -9,6 +9,43 @@ import { StatusCodes } from "http-status-codes";
 const prisma = new PrismaClient();
 
 export class EvtolServiceImpl implements EvtolService {
+ async getEvtolBySN(serialNo: string): Promise<eVTOLDevice | null> {
+    const evtol = await db.eVTOLDevice.findUnique({
+        where: {
+            serialNo
+        },
+    }) 
+    if(!evtol){
+        throw new CustomError(StatusCodes.NOT_FOUND, `No Evtol Device with serial number ${serialNo} exists`)
+    }
+      return evtol
+  }
+
+async getAllEvtol(): Promise<eVTOLDevice[]> {
+    return await db.eVTOLDevice.findMany();
+  }
+
+  async updateEvtol(serialNo: string, data: Partial<CreateEvtolDTO>): Promise<eVTOLDevice> {
+      throw new Error("Method not implemented.");
+  }
+ async deleteEvtol(serialNo: string): Promise<void> {
+    const isEvtolExist = await db.eVTOLDevice.findFirst({
+      where: {
+        serialNo,
+      },
+    });
+    if (isEvtolExist) {
+        throw new CustomError(
+          StatusCodes.CONFLICT,
+          "Evtol device not found."
+        );
+      }
+      await db.eVTOLDevice.delete({
+        where: {
+            serialNo
+        }
+      })
+  }
   async createEvtol(data: CreateEvtolDTO): Promise<eVTOLDevice> {
     const isEvtolExist = await db.eVTOLDevice.findFirst({
       where: {
@@ -61,11 +98,13 @@ export class EvtolServiceImpl implements EvtolService {
     return medication;
   }
 
+  
+
   async loadEvtolWithMedication(
     EvtolSerialNo: string,
-    medications: CreateMedicationDTO[]
+    medicCodes: string[]
   ): Promise<eVTOLDevice> {
-    const evtol = await db.eVTOLDevice.findFirst({
+    const evtol = await db.eVTOLDevice.findUnique({
       where: {
         serialNo: EvtolSerialNo,
       },
@@ -83,12 +122,19 @@ export class EvtolServiceImpl implements EvtolService {
       );
     }
 
-    const currentLoadWeight = evtol.medications.reduce(
-      (sum, med) => sum + med.weight,
-      0
-    );
-    const medLoadWeight = medications.reduce((sum, med) => sum + med.weight, 0);
-    const totalWeight = currentLoadWeight + medLoadWeight;
+    const medications = await db.medication.findMany({
+        where: {
+            code: {
+               in : medicCodes
+            }
+        }
+    })
+
+    if (medications.length !== medicCodes.length) {
+        throw new CustomError(StatusCodes.BAD_REQUEST, "Some medications not found.");
+      }
+
+    const totalWeight = medications.reduce((sum, med) => sum + med.weight, 0);
 
     if (totalWeight > evtol.weightLimit) {
       throw new CustomError(
@@ -106,21 +152,15 @@ export class EvtolServiceImpl implements EvtolService {
       },
     });
 
-    await db.medication.createMany({
-      data: medications.map((med) => ({
-        name: med.name,
-        weight: med.weight,
-        code: med.code,
-        image: med.image,
-        evtol_serialNo: evtol.serialNo,
-      })),
-    });
 
     const updatedEvtol = await db.eVTOLDevice.update({
       where: {
         serialNo: EvtolSerialNo,
       },
       data: {
+        medications: {
+            connect: medications.map((med) => ({ id: med.id }))
+        },
         status: "LOADED",
       },
       include: {

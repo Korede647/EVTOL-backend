@@ -32,7 +32,7 @@ app.use("/api/v1/evtol", evtolRoutes)
 
 app.use(errorHandler)
 
-setInterval(checkBatteryLevel, 10 * 60 * 100)
+// setInterval(checkBatteryLevel, 400 * 60 * 100)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
