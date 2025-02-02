@@ -2,6 +2,7 @@
   "name": "eVTOL Backend",
   "main": "index.ts",
   "scripts": {
+     "preinstall": "npm audit --omit=dev || true",
     "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
