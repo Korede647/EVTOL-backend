@@ -228,7 +228,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       where: { id: { in: evtol.medications.map((med) => med.id) } },
       data: { 
         delivered: true,    
-    },
+    } as any,
     });
   
     await db.eVTOLDevice.update({
