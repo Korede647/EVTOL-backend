@@ -28,14 +28,15 @@ model eVTOLDevice {
 }
 
 model Medication {
-  id             Int         @unique @default(autoincrement())
+  id             Int          @unique @default(autoincrement())
   name           String
   evtolDevice    eVTOLDevice? @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
   evtol_serialNo String?
   weight         Float
-  code           String      @unique
+  code           String       @unique
   image          String
-  createdAt      DateTime    @default(now())
+  delivered      Boolean?     @default(false)
+  createdAt      DateTime     @default(now())
 }
 
 model BatteryHistory {

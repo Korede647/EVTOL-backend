@@ -146,6 +146,20 @@ export class EvtolController{
         }
     }
 
+    public deliverMedications = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtol = req.params.serialNo
+            const medications = await this.evtolservice.deliverMedication(evtol)
+            res.status(201).json(medications)
+        }catch(error){
+            next(error)
+        }
+    }
+
     public getBatteryLevel = async(
         req: Request,
         res: Response,

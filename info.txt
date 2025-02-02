@@ -8,6 +8,7 @@ The EVTOL Backend API is a RESTful API that provides a set of endpoints for mana
 - Uploading and storing Medications.
 - Loading medications into EVTOLs.
 - Retrieving loaded medications.
+- Delivering Medications.
 - Checking Battery Level of EVTOL.
 
 API ENDPOINTS
@@ -31,6 +32,7 @@ Form-Data{
 }
 
 GET /loadedMedication/:serialNo - Get loaded Medication
+GET /deliveringMedications/:serialNo - Deliver loaded medications
 GET /batteryLevel/:serialNo - Get Battery Level of EVTOL
 GET / - Get available EVTOLs
 GET /:serialNo - Get EVTOL details

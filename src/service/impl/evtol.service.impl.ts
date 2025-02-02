@@ -199,6 +199,60 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return availableEvtol;
   }
 
+  async deliverMedication(EvtolSerialNo: string): Promise<eVTOLDevice> {
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+         serialNo: EvtolSerialNo
+         },
+      include: { medications: true },
+    });
+  
+    if (!evtol) throw new CustomError(StatusCodes.NOT_FOUND, "EVTOL not found");
+    if (evtol.status !== STATUS.LOADED) 
+      throw new CustomError(StatusCodes.BAD_REQUEST, "EVTOL is not loaded for delivery");
+  
+    console.log(`Starting delivery for EVTOL ${EvtolSerialNo}...`);
+  
+    // Change status to DELIVERING
+    await db.eVTOLDevice.update({
+      where: { 
+        serialNo: EvtolSerialNo 
+    },
+      data: { status: STATUS.DELIVERING },
+    });
+    console.log("EVTOL is now DELIVERING...");
+    await this.delay(30000); // Wait 30 seconds before next step
+  
+    // Change status to DELIVERED
+    await db.medication.updateMany({
+      where: { id: { in: evtol.medications.map((med) => med.id) } },
+      data: { 
+        delivered: true,    
+    },
+    });
+  
+    await db.eVTOLDevice.update({
+      where: { 
+        serialNo: EvtolSerialNo 
+    },
+      data: { status: STATUS.DELIVERED },
+    });
+    console.log("✅ EVTOL has DELIVERED the medication...");
+    await this.delay(30000); // Wait 30 seconds before next step
+  
+    // Reset EVTOL to IDLE
+    const updatedEvtol = await db.eVTOLDevice.update({
+      where: { 
+        serialNo: EvtolSerialNo 
+    },
+      data: { status: STATUS.IDLE, medications: { set: [] } }, // Clear medications
+    });
+  
+    console.log(" EVTOL has been reset to IDLE.");
+    return updatedEvtol;
+  }
+  
+
   async getBatteryLevel(EvtolSerialNo: string): Promise<number> {
     const evtol = await db.eVTOLDevice.findUnique({
         where: {
@@ -214,4 +268,10 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
   
     return evtol.batteryCapacity
   }
+
+//   function for delays
+  delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  
 }

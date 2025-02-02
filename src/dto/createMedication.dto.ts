@@ -13,4 +13,5 @@ export class CreateMedicationDTO {
 
     @IsNotEmpty()
     image!: string
+    
 }

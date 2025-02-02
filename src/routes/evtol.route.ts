@@ -13,6 +13,7 @@ evtolRoutes.get("/all", evtolcontroller.getAllEvtol)
 evtolRoutes.get("/allMedic", evtolcontroller.getAllMedic)
 evtolRoutes.get("/:serialNo", evtolcontroller.getEvtolBySN)
 evtolRoutes.get("/loadedMedication/:serialNo", evtolcontroller.getLoadedMedications)
+evtolRoutes.get("/deliveringMedications/:serialNo", evtolcontroller.deliverMedications)
 evtolRoutes.get("/", evtolcontroller.getAvailableEvtol)
 evtolRoutes.get("/batteryLevel/:serialNo", evtolcontroller.getBatteryLevel)
 
