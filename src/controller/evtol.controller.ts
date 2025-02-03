@@ -1,8 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import { EvtolServiceImpl } from "../service/impl/evtol.service.impl";
 import { CreateEvtolDTO } from "../dto/createEvtol.dto";
-import { Medication } from "@prisma/client";
-import { CreateMedicationDTO } from "../dto/createMedication.dto";
 
 export class EvtolController{
     private evtolservice: EvtolServiceImpl;
@@ -22,47 +20,6 @@ export class EvtolController{
             res.status(201).json(newEvtol);
         }catch (error){
             next(error);
-        }
-    }
-
-    public createMedic = async(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
-        try{
-            const {name, weight, code} = req.body as CreateMedicationDTO;
-            const imageUrl = req.file ? req.file?.path: ""
-
-            if (!imageUrl) {
-                res.status(400).json({ message: "Medication image is required." });
-            }
-    
-            const newMedic = await this.evtolservice.createMedication({
-                name, 
-                weight: Number(weight),
-                code,
-                image: imageUrl
-            });
-            res.status(201).json({
-                message: "Medication created successfully.",
-                data: newMedic,
-            });
-        }catch (error){
-            next(error);
-        }
-    }
-
-    public getAllMedic = async(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
-        try{
-            const evtols = await this.evtolservice.getAllMedications()
-                res.status(400).json(evtols)
-        }catch(error){
-            next(error)
         }
     }
 
@@ -88,6 +45,7 @@ export class EvtolController{
         try{
             const evtol = req.params.serialNo;
             const singleEvtol = await this.evtolservice.getEvtolBySN(evtol)
+            res.status(200).json(singleEvtol);
         }catch(error){
             next(error)
         }
