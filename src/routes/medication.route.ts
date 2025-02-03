@@ -7,8 +7,6 @@ const medicRoutes = express.Router();
 
 medicRoutes.post("/", uploadToCloudinaryMedicImage, mediController.createMedic)
 medicRoutes.get("/", mediController.getAllMedic)
-medicRoutes.get("/medication/:code", mediController.getMedicationByCode)
+medicRoutes.get("/:code", mediController.getMedicationByCode)
 medicRoutes.get("/updateMedic/:code", mediController.updateMedication)
 medicRoutes.get("/deleteMedic/:code", mediController.deleteMedication)
-
-// evtolRoutes.post("/createMedic", uploadToCloudinaryMedicImage, evtolcontroller.createMedic)

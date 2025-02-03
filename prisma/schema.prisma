@@ -13,6 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum USER_ROLE {
+  ADMIN
+  USER
+}
+
+model user {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  firstName String
+  lastName String
+  role USER_ROLE @default(USER)
+}
+
 model eVTOLDevice {
   id              Int      @id @default(autoincrement())
   serialNo        String   @unique
