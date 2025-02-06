@@ -13,18 +13,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum USER_ROLE {
+enum ROLE {
   ADMIN
   USER
 }
 
-model user {
-  id Int @id @default(autoincrement())
-  email String @unique
-  password String
+model User {
+  id        Int    @id @default(autoincrement())
+  email     String @unique
+  password  String
   firstName String
-  lastName String
-  role USER_ROLE @default(USER)
+  lastName  String
+  role      ROLE   @default(USER)
 }
 
 model eVTOLDevice {
@@ -75,4 +75,9 @@ enum STATUS {
   DELIVERING
   DELIVERED
   RETURNING
+}
+
+enum Role {
+  ADMIN
+  USER
 }

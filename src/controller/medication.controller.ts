@@ -43,8 +43,10 @@ export class MedicController {
             next: NextFunction
         ): Promise<void> => {
             try{
-                const evtols = await this.medicationservice.getAllMedications()
-                    res.status(400).json(evtols)
+                const medics = await this.medicationservice.getAllMedications()
+                    res.status(200).json({
+                        medics, 
+                        message: "Medications retrieved successfully"})
             }catch(error){
                 next(error)
             }

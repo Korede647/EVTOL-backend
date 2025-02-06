@@ -10,3 +10,5 @@ medicRoutes.get("/", mediController.getAllMedic)
 medicRoutes.get("/:code", mediController.getMedicationByCode)
 medicRoutes.get("/updateMedic/:code", mediController.updateMedication)
 medicRoutes.get("/deleteMedic/:code", mediController.deleteMedication)
+
+export default medicRoutes

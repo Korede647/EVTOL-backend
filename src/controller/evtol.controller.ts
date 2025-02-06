@@ -30,7 +30,7 @@ export class EvtolController{
     ): Promise<void> => {
         try{
             const evtols = await this.evtolservice.getAllEvtol()
-            res.status(400).json(evtols)
+            res.status(200).json(evtols)
         }catch(error){
             next(error)
         }
@@ -98,7 +98,7 @@ export class EvtolController{
     ): Promise<void> => {
         try{
             const evtols = await this.evtolservice.getAvailableEvtol()
-            res.status(201).json(evtols)
+            res.status(200).json(evtols)
         }catch(error){
             next(error)
         }

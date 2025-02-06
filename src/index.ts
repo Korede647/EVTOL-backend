@@ -3,6 +3,7 @@ import cors from "cors";
 import evtolRoutes from "./routes/evtol.route";
 import { checkBatteryLevel } from "./middleware/evtolBatteryLevel.middleware";
 import { errorHandler } from "./utils/errorHandler.utils";
+import medicRoutes from "./routes/medication.route";
 
 const portEnv = process.env.PORT
 if(!portEnv){
@@ -29,6 +30,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/v1/evtol", evtolRoutes)
+app.use("/api/v1/medications", medicRoutes)
 
 app.use(errorHandler)
 
