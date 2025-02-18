@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import { CreateUserDTO } from "../../dto/createUser.dto";
 import { UserService } from "../user.service";
 
