@@ -19,12 +19,20 @@ enum ROLE {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  email     String @unique
-  password  String
-  firstName String
-  lastName  String
-  role      ROLE   @default(USER)
+  id                       Int       @id @default(autoincrement())
+  email                    String    @unique
+  password                 String
+  firstName                String
+  lastName                 String
+  emailVerified            Boolean?
+  resetPasswordToken       String?
+  resetPasswordTokenExpiry DateTime? @default(now())
+  otp                      String?
+  otpExpiry                DateTime?
+  googleId                 String?   @unique
+  role                     ROLE      @default(USER)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 }
 
 model eVTOLDevice {
