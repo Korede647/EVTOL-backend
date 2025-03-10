@@ -1,8 +1,8 @@
-import { NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuthServiceImpl } from "../service/impl/auth.service.impl";
 import { LoginDTO } from "../dto/login.dto";
 import { CreateUserDTO } from "../dto/createUser.dto";
-import { error } from "console";
+
 import { VerifyEmailDTO } from "../dto/verifyEmail.dto";
 
 export class AuthController{
@@ -35,7 +35,7 @@ export class AuthController{
         next: NextFunction
     ): Promise<void> => {
           try{
-            const data: CreateUserDTO = req.body
+            const data: CreateUserDTO = req.body 
             const user = await this.authService.createUser(data)
             res.status(201).json({
                 error: false,
