@@ -21,7 +21,7 @@ enum ROLE {
 model User {
   id                       Int       @id @default(autoincrement())
   email                    String    @unique
-  password                 String
+  password                 String?
   firstName                String
   lastName                 String
   emailVerified            Boolean?
