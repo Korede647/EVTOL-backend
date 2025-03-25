@@ -4,6 +4,8 @@ import evtolRoutes from "./routes/evtol.route";
 import { checkBatteryLevel } from "./middleware/evtolBatteryLevel.middleware";
 import { errorHandler } from "./utils/errorHandler.utils";
 import medicRoutes from "./routes/medication.route";
+import userRoutes from "./routes/user.route";
+import authRoutes from "./routes/auth.route";
 
 const portEnv = process.env.PORT
 if(!portEnv){
@@ -31,6 +33,8 @@ app.use(express.json());
 
 app.use("/api/v1/evtol", evtolRoutes)
 app.use("/api/v1/medications", medicRoutes)
+app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/auth", authRoutes)
 
 app.use(errorHandler)
 

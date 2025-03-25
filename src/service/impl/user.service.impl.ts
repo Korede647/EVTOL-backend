@@ -4,6 +4,7 @@ import { UserService } from "../user.service";
 import { db } from "../../config/db";
 import { CustomError } from "../../exceptions/customError.error";
 import { StatusCodes } from "http-status-codes";
+import { hashPassword } from "../../utils/password.util";
 
 export class UserServiceImpl implements UserService{
     async createUser(data: CreateUserDTO): Promise<User> {
@@ -15,7 +16,7 @@ export class UserServiceImpl implements UserService{
          if(isUserExists){
             throw new CustomError(
                 StatusCodes.CONFLICT,
-                "Oops a user with this id already exists."
+                "Oops a user with this email already exists."
             )
          }
 
@@ -24,7 +25,7 @@ export class UserServiceImpl implements UserService{
                 firstName: data.firstName,
                 lastName: data.lastName,
                 email: data.email,
-                password: data.password
+                password: await hashPassword(data.password)
             }
          })
          return user

@@ -11,3 +11,5 @@ userRoutes.get("/", isAdmin, userController.getAllUsers)
 userRoutes.get("/:id", isAdmin, userController.getUserById)
 userRoutes.patch("/:id", authenticateUser, userController.updateUser)
 userRoutes.delete("/:id", authenticateUser, userController.deleteUser)
+
+export default userRoutes
