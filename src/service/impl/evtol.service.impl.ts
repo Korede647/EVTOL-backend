@@ -126,6 +126,16 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       );
     }
 
+    await db.medication.updateMany({
+      where: {
+         code: {
+           in: medicCodes 
+          } 
+        },
+        data: {
+          delivered: false
+        }
+    })
     await db.eVTOLDevice.update({
       where: {
         serialNo: EvtolSerialNo,
@@ -134,6 +144,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
         status: "LOADING",
       },
     });
+    await this.delay(60000);
 
 
     const updatedEvtol = await db.eVTOLDevice.update({
@@ -204,7 +215,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       data: { status: STATUS.DELIVERING },
     });
     console.log("EVTOL is now DELIVERING...");
-    await this.delay(30000); // Wait 30 seconds before next step
+    await this.delay(60000); // Wait 60 seconds before next step
   
     // Change status to DELIVERED
     await db.medication.updateMany({
@@ -218,11 +229,26 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       where: { 
         serialNo: EvtolSerialNo 
     },
-      data: { status: STATUS.DELIVERED },
+      data: { 
+        status: STATUS.DELIVERED
+      },
     });
+    
     console.log("✅ EVTOL has DELIVERED the medication...");
-    await this.delay(30000); // Wait 30 seconds before next step
+    await this.delay(60000); // Wait 60 seconds before next step
   
+    await db.eVTOLDevice.update({
+      where: {
+        serialNo: EvtolSerialNo
+      },
+      data: {
+        status: STATUS.RETURNING
+      },
+    })
+    console.log("EVTOL has returned from delivery");
+    await this.delay(30000)
+    
+
     // Reset EVTOL to IDLE
     const updatedEvtol = await db.eVTOLDevice.update({
       where: { 

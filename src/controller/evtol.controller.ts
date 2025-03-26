@@ -58,11 +58,11 @@ export class EvtolController{
         next: NextFunction
     ): Promise<void> => {
         try{
-            // const evtol = req.params.serialNo;
+            // const serialNo = req.params.serialNo;
             const {serialNo, medications} = req.body ;
 
             if (!serialNo || !medications || !Array.isArray(medications)) {
-                res.status(400).json({ message: "Invalid input data" });
+               res.status(400).json({ message: "Invalid input data" });
               }
 
             const loadEvtol = await this.evtolservice.loadEvtolWithMedication(serialNo, medications);
