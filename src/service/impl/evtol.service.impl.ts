@@ -169,6 +169,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
           const evtol = await db.eVTOLDevice.findFirst({
               where: {
                   serialNo: EvtolSerialNo,
+                  status: "LOADED"
               },
               include: {
                   medications: true,
@@ -183,6 +184,16 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
         }
 
 
+        async getLoadedEvtol(): Promise<eVTOLDevice[]>{
+          const loadedEvtol = await db.eVTOLDevice.findMany({
+            where:{
+              status: 
+             STATUS.LOADED,
+          }
+          })
+          return loadedEvtol;
+        }
+
   async getAvailableEvtol(): Promise<eVTOLDevice[]> {
     const availableEvtol = await db.eVTOLDevice.findMany({
         where: {
@@ -193,7 +204,8 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return availableEvtol;
   }
 
-  async deliverMedication(EvtolSerialNo: string): Promise<eVTOLDevice> {
+  async deliverMedication(EvtolSerialNo: string, distanceTravelled: number): Promise<eVTOLDevice> {
+
     const evtol = await db.eVTOLDevice.findUnique({
       where: {
          serialNo: EvtolSerialNo
@@ -215,8 +227,24 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       data: { status: STATUS.DELIVERING },
     });
     console.log("EVTOL is now DELIVERING...");
-    await this.delay(60000); // Wait 60 seconds before next step
-  
+    
+     let currentBattery: number = 0
+     if(distanceTravelled > 100 && distanceTravelled < 300){
+      currentBattery = evtol.batteryCapacity - 15
+     }
+     if(distanceTravelled > 300 && distanceTravelled < 600 ){
+      currentBattery = evtol.batteryCapacity - 30
+     }
+     if(distanceTravelled > 600 && distanceTravelled < 1000){
+      currentBattery = evtol.batteryCapacity - 45
+     }
+     if(distanceTravelled > 1000){
+      currentBattery = evtol.batteryCapacity - 70
+     }else{
+     currentBattery = evtol.batteryCapacity - 5
+     }
+     await this.delay(60000);  // Wait 60 seconds before next step
+
     // Change status to DELIVERED
     await db.medication.updateMany({
       where: { id: { in: evtol.medications.map((med) => med.id) } },
@@ -230,11 +258,27 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
         serialNo: EvtolSerialNo 
     },
       data: { 
+        batteryCapacity: currentBattery,
         status: STATUS.DELIVERED
       },
     });
     
     console.log("✅ EVTOL has DELIVERED the medication...");
+    let midCurrentBattery: number = 0
+    if(distanceTravelled > 100 && distanceTravelled < 300){
+      midCurrentBattery = currentBattery - 10
+     }
+     if(distanceTravelled > 300 && distanceTravelled < 600 ){
+      midCurrentBattery = currentBattery - 20
+     }
+     if(distanceTravelled > 600 && distanceTravelled < 1000){
+      midCurrentBattery = currentBattery - 30
+     }
+     if(distanceTravelled > 1000){
+      midCurrentBattery = currentBattery - 20
+     }else{
+     midCurrentBattery = currentBattery - 3
+     }
     await this.delay(60000); // Wait 60 seconds before next step
   
     await db.eVTOLDevice.update({
@@ -242,19 +286,26 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
         serialNo: EvtolSerialNo
       },
       data: {
+        batteryCapacity: midCurrentBattery,
         status: STATUS.RETURNING
       },
     })
     console.log("EVTOL has returned from delivery");
+    
+     
     await this.delay(30000)
     
-
+    let lastcurrentBattery: number = midCurrentBattery - 1
     // Reset EVTOL to IDLE
     const updatedEvtol = await db.eVTOLDevice.update({
       where: { 
         serialNo: EvtolSerialNo 
     },
-      data: { status: STATUS.IDLE, medications: { set: [] } }, // Clear medications
+      data: { 
+        status: STATUS.IDLE, 
+        batteryCapacity: lastcurrentBattery, // set battery percent to current batteryCapacity after delivery
+        medications: { set: [] }  // Clear medications
+      },
     });
   
     console.log(" EVTOL has been reset to IDLE.");

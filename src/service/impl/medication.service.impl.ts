@@ -29,6 +29,8 @@ export class MedicationServiceImpl implements MedicationService{
             weight: data.weight,
             code: data.code,
             image: data.image,
+            price: data.price,
+            description: data.description,
           }
         });
         return medication;

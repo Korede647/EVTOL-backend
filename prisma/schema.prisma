@@ -36,14 +36,16 @@ model User {
 }
 
 model eVTOLDevice {
-  id              Int      @id @default(autoincrement())
-  serialNo        String   @unique
-  model           MODEL
-  weightLimit     Float    @default(500.0)
-  batteryCapacity Float    @default(100.0)
-  status          STATUS   @default(IDLE)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  serialNo          String   @unique
+  model             MODEL
+  weightLimit       Float    @default(500.0)
+  batteryCapacity   Float    @default(100.0)
+  status            STATUS   @default(IDLE)
+  distanceTravelled Float    @default(0.0)
+  destination       String   @default("No Destination")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   batteryHistory BatteryHistory[]
   medications    Medication[]
@@ -58,6 +60,7 @@ model Medication {
   code           String       @unique
   image          String
   price          Float        @default(350.0)
+  description    String       @default("No Description")
   delivered      Boolean?     @default(false)
   createdAt      DateTime     @default(now())
 }
@@ -69,8 +72,6 @@ model BatteryHistory {
   batteryLevel   Float
   createdAt      DateTime    @default(now())
 }
-
-
 
 enum MODEL {
   LIGHTWEIGHT

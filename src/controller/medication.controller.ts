@@ -15,7 +15,7 @@ export class MedicController {
             next: NextFunction
         ): Promise<void> => {
             try{
-                const {name, weight, code} = req.body as CreateMedicationDTO;
+                const {name, weight, code, price, description} = req.body as CreateMedicationDTO;
                 const imageUrl = req.file ? req.file?.path: ""
     
                 if (!imageUrl) {
@@ -26,7 +26,9 @@ export class MedicController {
                     name, 
                     weight: Number(weight),
                     code,
-                    image: imageUrl
+                    image: imageUrl,
+                    price: Number(price),
+                    description
                 });
                 res.status(201).json({
                     message: "Medication created successfully.",

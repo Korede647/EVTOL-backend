@@ -85,7 +85,20 @@ export class EvtolController{
             const evtol = req.params.serialNo;
             const getMedications = await this.evtolservice.getLoadedMedications(evtol)
 
-            res.status(201).json(getMedications);
+            res.status(200).json(getMedications);
+        }catch(error){
+            next(error)
+        }
+    }
+
+    public getLoadedEvtol = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtols = await this.evtolservice.getLoadedEvtol()
+            res.status(200).json(evtols)
         }catch(error){
             next(error)
         }
@@ -110,8 +123,10 @@ export class EvtolController{
         next: NextFunction
     ): Promise<void> => {
         try{
+            // const userId = parseInt(req.params.id)
             const evtol = req.params.serialNo
-            const medications = await this.evtolservice.deliverMedication(evtol)
+            const distance = req.body.distance
+            const medications = await this.evtolservice.deliverMedication(evtol, distance)
             res.status(201).json(medications)
         }catch(error){
             next(error)
