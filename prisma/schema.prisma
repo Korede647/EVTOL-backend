@@ -19,13 +19,13 @@ enum ROLE {
 }
 
 model User {
-  id                       Int       @id @default(autoincrement())
+  id                       Int       @id @unique @default(autoincrement())
   email                    String    @unique
   password                 String?
   firstName                String
   lastName                 String
   emailVerified            Boolean?
-  resetPasswordToken       String?
+  evtolSerialNo            String?
   resetPasswordTokenExpiry DateTime? @default(now())
   otp                      String?
   otpExpiry                DateTime?
@@ -33,10 +33,13 @@ model User {
   role                     ROLE      @default(USER)
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
+
+  evtolRequest      EvtolRequest[]
+  loadedMedications LoadedMedication[]
 }
 
 model eVTOLDevice {
-  id                Int      @id @default(autoincrement())
+  id                Int      @id @unique @default(autoincrement())
   serialNo          String   @unique
   model             MODEL
   weightLimit       Float    @default(500.0)
@@ -47,22 +50,47 @@ model eVTOLDevice {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  requests       EvtolRequest[]
   batteryHistory BatteryHistory[]
   medications    Medication[]
 }
 
+model EvtolRequest {
+  id            Int                @id @default(autoincrement())
+  userId        Int
+  evtolSerialNo String
+  requestStatus EvtolRequestStatus @default(PENDING)
+  createdAt     DateTime           @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evtol eVTOLDevice @relation(fields: [evtolSerialNo], references: [serialNo], onDelete: Cascade)
+}
+
 model Medication {
-  id             Int          @unique @default(autoincrement())
+  id             Int      @id @unique @default(autoincrement())
   name           String
-  evtolDevice    eVTOLDevice? @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade, onUpdate: Cascade)
   evtol_serialNo String?
   weight         Float
-  code           String       @unique
+  code           String   @unique
   image          String
-  price          Float        @default(350.0)
-  description    String       @default("No Description")
-  delivered      Boolean?     @default(false)
-  createdAt      DateTime     @default(now())
+  price          Float    @default(350.0)
+  description    String   @default("No Description")
+  delivered      Boolean? @default(false)
+  createdAt      DateTime @default(now())
+
+  evtolDevice      eVTOLDevice[]
+  loadedMedication LoadedMedication[]
+}
+
+model LoadedMedication {
+  id       Int      @id @default(autoincrement())
+  loadedAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  medicationId Int
+  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
 }
 
 model BatteryHistory {
@@ -87,6 +115,12 @@ enum STATUS {
   DELIVERING
   DELIVERED
   RETURNING
+}
+
+enum EvtolRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
 }
 
 enum Role {

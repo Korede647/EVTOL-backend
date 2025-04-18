@@ -1,4 +1,4 @@
-import { eVTOLDevice, Medication, PrismaClient, STATUS } from "@prisma/client";
+import { eVTOLDevice, EvtolRequest, Medication, PrismaClient, STATUS } from "@prisma/client";
 import { CreateEvtolDTO } from "../../dto/createEvtol.dto";
 import { EvtolService } from "../evtol.service";
 import { db } from "../../config/db";
@@ -6,6 +6,118 @@ import { CustomError } from "../../exceptions/customError.error";
 import { StatusCodes } from "http-status-codes";
 
 export class EvtolServiceImpl implements EvtolService {
+  async rejectRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest> {
+    const user = await db.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    if(!user){
+      throw new CustomError(StatusCodes.BAD_REQUEST, "User does not exist")
+    }
+
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+        serialNo: EvtolSerialNo
+      },
+      include: {
+        requests: true
+      }
+    })
+    if(!evtol){
+      throw new CustomError(StatusCodes.BAD_REQUEST, "Evtol does not exist")
+    }
+
+    const request = await db.evtolRequest.findFirst({
+      where: { 
+        userId, 
+        evtolSerialNo: EvtolSerialNo 
+      },
+    });
+    if (!request) {
+      throw new CustomError(
+        StatusCodes.BAD_REQUEST,
+        "No matching eVTOL request found"
+      );
+    }
+
+    const rejectedRequest = await db.evtolRequest.update({
+      where: {
+       id: request.id
+    },
+    include: {
+      user: true,
+      evtol: true
+    },
+    data: {
+     requestStatus: "DECLINED"
+    },
+ })
+    return rejectedRequest
+  }
+  getAllLoadedEvtol(): Promise<eVTOLDevice[]> {
+    throw new Error("Method not implemented.");
+  }
+  getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
+    throw new Error("Method not implemented.");
+  }
+  getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
+    throw new Error("Method not implemented.");
+  }
+  requestEvtol(userId: number, EvtolSerialNo:string): Promise<eVTOLDevice> {
+    throw new Error("Method not implemented.");
+  }
+ async approveRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest> {
+    const user = await db.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    if(!user){
+      throw new CustomError(StatusCodes.BAD_REQUEST, "User does not exist")
+    }
+
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+        serialNo: EvtolSerialNo
+      },
+      include: {
+        requests: true
+      }
+    })
+    if(!evtol){
+      throw new CustomError(StatusCodes.BAD_REQUEST, "Evtol does not exist")
+    }
+
+    const request = await db.evtolRequest.findFirst({
+      where: { 
+        userId, 
+        evtolSerialNo: EvtolSerialNo 
+      },
+    });
+    if (!request) {
+      throw new CustomError(
+        StatusCodes.BAD_REQUEST,
+        "No matching eVTOL request found"
+      );
+    }
+
+    const approvedRequest = await db.evtolRequest.update({
+      where: {
+       id: request.id
+    },
+    include: {
+      user: true,
+      evtol: true
+    },
+    data: {
+     requestStatus: "APPROVED"
+    },
+ })
+    return approvedRequest
+  }
  async getEvtolBySN(serialNo: string): Promise<eVTOLDevice | null> {
     const evtol = await db.eVTOLDevice.findUnique({
         where: {
@@ -83,10 +195,49 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return evtol;
   }
 
+  // async const loadMedication = async (userId: number, medicationId: number) => {
+  //   const loadedMedication = await prisma.loadedMedication.create({
+  //     data: {
+  //       user: { connect: { id: userId } },
+  //       medication: { connect: { id: medicationId } },
+  //     },
+  //   });
+  //   return loadedMedication;
+  // };
+
+  // const loadMedication = async (userId: number, medicationId: number) => {
+  //   const loadedMedication = await prisma.loadedMedication.create({
+  //     data: {
+  //       user: { connect: { id: userId } },
+  //       medication: { connect: { id: medicationId } },
+  //     },
+  //   });
+  //   return loadedMedication;
+  // };
+  
+  
+
   async loadEvtolWithMedication(
     EvtolSerialNo: string,
+    userId: number,
     medicCodes: string[]
   ): Promise<eVTOLDevice> {
+    const user = await db.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    // const userWithRequests = await db.user.findUnique({
+    //   where: { id: userId },
+    //   include: { requestedEVTOLs: true }
+    // });
+    
+    // if (!userWithRequests.requestedEVTOLs.some(evtol => evtol.serialNo === requestedSerialNo)) {
+    //   throw new CustomError(StatusCodes.FORBIDDEN, "You have not requested this EVTOL");
+    // }
+    
+
     const evtol = await db.eVTOLDevice.findUnique({
       where: {
         serialNo: EvtolSerialNo,
@@ -205,112 +356,84 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
   }
 
   async deliverMedication(EvtolSerialNo: string, distanceTravelled: number): Promise<eVTOLDevice> {
-
     const evtol = await db.eVTOLDevice.findUnique({
-      where: {
-         serialNo: EvtolSerialNo
-         },
+      where: { serialNo: EvtolSerialNo },
       include: { medications: true },
     });
   
     if (!evtol) throw new CustomError(StatusCodes.NOT_FOUND, "EVTOL not found");
-    if (evtol.status !== STATUS.LOADED) 
+    if (evtol.status !== STATUS.LOADED)
       throw new CustomError(StatusCodes.BAD_REQUEST, "EVTOL is not loaded for delivery");
   
     console.log(`Starting delivery for EVTOL ${EvtolSerialNo}...`);
   
     // Change status to DELIVERING
     await db.eVTOLDevice.update({
-      where: { 
-        serialNo: EvtolSerialNo 
-    },
+      where: { serialNo: EvtolSerialNo },
       data: { status: STATUS.DELIVERING },
     });
+  
     console.log("EVTOL is now DELIVERING...");
+  
+    let currentBattery = evtol.batteryCapacity;
     
-     let currentBattery: number = 0
-     if(distanceTravelled > 100 && distanceTravelled < 300){
-      currentBattery = evtol.batteryCapacity - 15
-     }
-     if(distanceTravelled > 300 && distanceTravelled < 600 ){
-      currentBattery = evtol.batteryCapacity - 30
-     }
-     if(distanceTravelled > 600 && distanceTravelled < 1000){
-      currentBattery = evtol.batteryCapacity - 45
-     }
-     if(distanceTravelled > 1000){
-      currentBattery = evtol.batteryCapacity - 70
-     }else{
-     currentBattery = evtol.batteryCapacity - 5
-     }
-     await this.delay(60000);  // Wait 60 seconds before next step
-
-    // Change status to DELIVERED
+    if (distanceTravelled > 1000) currentBattery -= 70;
+    else if (distanceTravelled > 600) currentBattery -= 45;
+    else if (distanceTravelled > 300) currentBattery -= 30;
+    else if (distanceTravelled > 100) currentBattery -= 15;
+    else currentBattery -= 5;
+  
+    await this.delay(60000); // Wait 60 seconds before next step
+  
+    // Mark medications as delivered
     await db.medication.updateMany({
       where: { id: { in: evtol.medications.map((med) => med.id) } },
-      data: { 
-        delivered: true,    
-    } as any,
+      data: { delivered: true } as any,
     });
   
     await db.eVTOLDevice.update({
-      where: { 
-        serialNo: EvtolSerialNo 
-    },
-      data: { 
-        batteryCapacity: currentBattery,
-        status: STATUS.DELIVERED
-      },
+      where: { serialNo: EvtolSerialNo },
+      data: { batteryCapacity: currentBattery, status: STATUS.DELIVERED },
     });
-    
+  
     console.log("✅ EVTOL has DELIVERED the medication...");
-    let midCurrentBattery: number = 0
-    if(distanceTravelled > 100 && distanceTravelled < 300){
-      midCurrentBattery = currentBattery - 10
-     }
-     if(distanceTravelled > 300 && distanceTravelled < 600 ){
-      midCurrentBattery = currentBattery - 20
-     }
-     if(distanceTravelled > 600 && distanceTravelled < 1000){
-      midCurrentBattery = currentBattery - 30
-     }
-     if(distanceTravelled > 1000){
-      midCurrentBattery = currentBattery - 20
-     }else{
-     midCurrentBattery = currentBattery - 3
-     }
+  
+    let midCurrentBattery = currentBattery;
+    
+    if (distanceTravelled > 1000) midCurrentBattery -= 20;
+    else if (distanceTravelled > 600) midCurrentBattery -= 30;
+    else if (distanceTravelled > 300) midCurrentBattery -= 20;
+    else if (distanceTravelled > 100) midCurrentBattery -= 10;
+    else midCurrentBattery -= 3;
+  
     await this.delay(60000); // Wait 60 seconds before next step
   
     await db.eVTOLDevice.update({
-      where: {
-        serialNo: EvtolSerialNo
-      },
-      data: {
-        batteryCapacity: midCurrentBattery,
-        status: STATUS.RETURNING
-      },
-    })
+      where: { serialNo: EvtolSerialNo },
+      data: { batteryCapacity: midCurrentBattery, status: STATUS.RETURNING },
+    });
+  
     console.log("EVTOL has returned from delivery");
-    
-     
-    await this.delay(30000)
-    
-    let lastcurrentBattery: number = midCurrentBattery - 1
+  
+    await this.delay(30000);
+  
+    let lastCurrentBattery = midCurrentBattery - 1;
+  
     // Reset EVTOL to IDLE
     const updatedEvtol = await db.eVTOLDevice.update({
-      where: { 
-        serialNo: EvtolSerialNo 
-    },
+      where: { serialNo: EvtolSerialNo },
       data: { 
-        status: STATUS.IDLE, 
-        batteryCapacity: lastcurrentBattery, // set battery percent to current batteryCapacity after delivery
-        medications: { set: [] }  // Clear medications
+        status: STATUS.IDLE,
+        batteryCapacity: lastCurrentBattery, // Final battery capacity after return
+        medications: { set: [] }, // Clear medications
       },
     });
   
-    console.log(" EVTOL has been reset to IDLE.");
+    console.log("EVTOL has been reset to IDLE.");
+  
     return updatedEvtol;
   }
+  
   
 
   async getBatteryLevel(EvtolSerialNo: string): Promise<number> {
