@@ -1,4 +1,4 @@
-import { Medication, eVTOLDevice } from "@prisma/client";
+import { LoadedMedication, Medication, eVTOLDevice } from "@prisma/client";
 import { CreateMedicationDTO } from "../../dto/createMedication.dto";
 import { MedicationService } from "../medication.service";
 import { CustomError } from "../../exceptions/customError.error";
@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import { db } from "../../config/db";
 
 export class MedicationServiceImpl implements MedicationService{
-  async getLoadedMedications(EvtolSerialNo: string, userId: number): Promise<Medication[]> {
+  async getLoadedMedications(EvtolSerialNo: string, userId: number): Promise<LoadedMedication[]> {
     const user = await db.user.findUnique({
       where: {
         id: userId
@@ -38,9 +38,19 @@ export class MedicationServiceImpl implements MedicationService{
 
     const loadedMedication = db.loadedMedication.findMany({
       where: {
-        evtol_serialNo: EvtolSerialNo
+        evtol_serialNo: EvtolSerialNo,
+        userId
       }
     })
+    
+    if(!loadedMedication){
+      throw new CustomError(
+        StatusCodes.BAD_REQUEST,
+        "You have not loaded any medication on this Evtol"
+      )
+    }
+
+    return loadedMedication
   }
   async getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
       const evtol = await db.eVTOLDevice.findUnique({

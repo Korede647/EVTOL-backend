@@ -7,7 +7,7 @@ export interface EvtolService{
     getAllEvtol(): Promise<eVTOLDevice[]>
     loadEvtolWithMedication(EvtolSerialNo: string,userId: number,  medicCodes: string[]): Promise<eVTOLDevice>
     getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]>
-    requestEvtol(userId: number, EvtolSerialNo: string): Promise<eVTOLDevice>
+    requestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest>
 
     rejectRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest>
     approveRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest>

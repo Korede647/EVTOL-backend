@@ -1,4 +1,4 @@
-import { eVTOLDevice, EvtolRequest, Medication, PrismaClient, STATUS } from "@prisma/client";
+import { eVTOLDevice, EvtolRequest, EvtolRequestStatus, Medication, PrismaClient, STATUS } from "@prisma/client";
 import { CreateEvtolDTO } from "../../dto/createEvtol.dto";
 import { EvtolService } from "../evtol.service";
 import { db } from "../../config/db";
@@ -69,8 +69,42 @@ export class EvtolServiceImpl implements EvtolService {
   getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
     throw new Error("Method not implemented.");
   }
-  requestEvtol(userId: number, EvtolSerialNo:string): Promise<eVTOLDevice> {
-    throw new Error("Method not implemented.");
+  async requestEvtol(userId: number, EvtolSerialNo:string): Promise<EvtolRequest> {
+    const user = await db.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+
+    if(!user){
+      throw new CustomError(
+        StatusCodes.NOT_FOUND,
+        "User Not Found"
+      )
+    }
+
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+        serialNo: EvtolSerialNo
+      }
+    })
+
+    if(!evtol){
+      throw new CustomError(
+        StatusCodes.NOT_FOUND,
+        "Evtol Device Not Found"
+      )
+    }
+
+    const request = await db.evtolRequest.create({
+      data: {
+        userId,
+        evtolSerialNo: EvtolSerialNo,
+        requestStatus: EvtolRequestStatus.PENDING
+      }
+    })
+
+    return request
   }
  async approveRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest> {
     const user = await db.user.findUnique({
@@ -200,25 +234,25 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return evtol;
   }
 
-  async const loadMedication = async (userId: number, medicationId: number) => {
-    const loadedMedication = await db.medication.create({
-      data: {
-        user: { connect: { id: userId } },
-        medication: { connect: { id: medicationId } },
-      },
-    });
-    return loadedMedication;
-  };
+  // async const loadMedication = async (userId: number, medicationId: number) => {
+  //   const loadedMedication = await db.medication.create({
+  //     data: {
+  //       user: { connect: { id: userId } },
+  //       medication: { connect: { id: medicationId } },
+  //     },
+  //   });
+  //   return loadedMedication;
+  // };
 
-  const loadMedication = async (userId: number, medicationId: number) => {
-    const loadedMedication = await prisma.loadedMedication.create({
-      data: {
-        user: { connect: { id: userId } },
-        medication: { connect: { id: medicationId } },
-      },
-    });
-    return loadedMedication;
-  };
+  // const loadMedication = async (userId: number, medicationId: number) => {
+  //   const loadedMedication = await prisma.loadedMedication.create({
+  //     data: {
+  //       user: { connect: { id: userId } },
+  //       medication: { connect: { id: medicationId } },
+  //     },
+  //   });
+  //   return loadedMedication;
+  // };
   
   
 
