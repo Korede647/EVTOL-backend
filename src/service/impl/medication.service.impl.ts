@@ -6,6 +6,59 @@ import { StatusCodes } from "http-status-codes";
 import { db } from "../../config/db";
 
 export class MedicationServiceImpl implements MedicationService{
+  async getLoadedMedications(EvtolSerialNo: string, userId: number): Promise<Medication[]> {
+    const user = await db.user.findUnique({
+      where: {
+        id: userId
+      },
+    })
+
+    if(!user){
+      throw new CustomError(
+        StatusCodes.NOT_FOUND,
+        "This user does not exist"
+      )
+    }
+
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+        serialNo: EvtolSerialNo,
+      },
+      include: {
+        medications: true
+      }
+    })
+
+    if(!evtol){
+      throw new CustomError(
+        StatusCodes.NOT_FOUND,
+        "Evtol Device Not Found"
+      )
+    }
+
+    const loadedMedication = db.loadedMedication.findMany({
+      where: {
+        evtol_serialNo: EvtolSerialNo
+      }
+    })
+  }
+  async getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
+      const evtol = await db.eVTOLDevice.findUnique({
+        where: {
+          serialNo: EvtolSerialNo
+        },
+        include: {
+          medications: true
+        },
+      })
+      if(!evtol){
+        throw new CustomError(
+          StatusCodes.NOT_FOUND,
+          "No Evtols found"
+        )
+      }
+      return evtol.medications
+    }
 
     async createMedication(data: CreateMedicationDTO): Promise<Medication> {
         const isMedicExist = await db.medication.findUnique({

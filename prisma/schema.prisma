@@ -51,6 +51,7 @@ model eVTOLDevice {
   updatedAt         DateTime @updatedAt
 
   requests       EvtolRequest[]
+  loadedMedications LoadedMedication[]
   batteryHistory BatteryHistory[]
   medications    Medication[]
 }
@@ -89,6 +90,8 @@ model LoadedMedication {
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  evtol_serialNo Int
+  evtolDevice eVTOLDevice @relation(fields: [evtol_serialNo], references: [id], onDelete: Cascade)
   medicationId Int
   medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
 }

@@ -37,7 +37,7 @@ export class EvtolServiceImpl implements EvtolService {
     });
     if (!request) {
       throw new CustomError(
-        StatusCodes.BAD_REQUEST,
+        StatusCodes.NOT_FOUND,
         "No matching eVTOL request found"
       );
     }
@@ -60,28 +60,12 @@ export class EvtolServiceImpl implements EvtolService {
  async getAllLoadedEvtol(): Promise<eVTOLDevice[]> {
     const loadedEvtol = await db.eVTOLDevice.findMany({
       where: {
-        status: "LOADED",
+        status: STATUS.LOADED,
       },
     })
     return loadedEvtol;
   }
 
- async getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
-    const evtol = await db.eVTOLDevice.findUnique({
-      where: {
-        serialNo: EvtolSerialNo
-      },
-      include: {
-        medications: true
-      },
-    })
-    if(!evtol){
-      throw new CustomError(
-        StatusCodes.BAD_REQUEST,
-        "No Evtols found"
-      )
-    }
-  }
   getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
     throw new Error("Method not implemented.");
   }
@@ -216,25 +200,25 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
     return evtol;
   }
 
-  // async const loadMedication = async (userId: number, medicationId: number) => {
-  //   const loadedMedication = await prisma.loadedMedication.create({
-  //     data: {
-  //       user: { connect: { id: userId } },
-  //       medication: { connect: { id: medicationId } },
-  //     },
-  //   });
-  //   return loadedMedication;
-  // };
+  async const loadMedication = async (userId: number, medicationId: number) => {
+    const loadedMedication = await db.medication.create({
+      data: {
+        user: { connect: { id: userId } },
+        medication: { connect: { id: medicationId } },
+      },
+    });
+    return loadedMedication;
+  };
 
-  // const loadMedication = async (userId: number, medicationId: number) => {
-  //   const loadedMedication = await prisma.loadedMedication.create({
-  //     data: {
-  //       user: { connect: { id: userId } },
-  //       medication: { connect: { id: medicationId } },
-  //     },
-  //   });
-  //   return loadedMedication;
-  // };
+  const loadMedication = async (userId: number, medicationId: number) => {
+    const loadedMedication = await prisma.loadedMedication.create({
+      data: {
+        user: { connect: { id: userId } },
+        medication: { connect: { id: medicationId } },
+      },
+    });
+    return loadedMedication;
+  };
   
   
 
@@ -248,15 +232,22 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
         id: userId
       }
     })
+    if(!user){
+      throw new CustomError(StatusCodes.BAD_REQUEST,
+        "User does not exist"
+      )
+    }
 
-    // const userWithRequests = await db.user.findUnique({
-    //   where: { id: userId },
-    //   include: { requestedEVTOLs: true }
-    // });
+    const userWithRequests = await db.user.findUnique({
+      where: { id: userId },
+      include: {
+        evtolRequest: true
+       }
+    });
     
-    // if (!userWithRequests.requestedEVTOLs.some(evtol => evtol.serialNo === requestedSerialNo)) {
-    //   throw new CustomError(StatusCodes.FORBIDDEN, "You have not requested this EVTOL");
-    // }
+    if (!userWithRequests?.evtolRequest.some(evtol => evtol.evtolSerialNo === EvtolSerialNo)) {
+      throw new CustomError(StatusCodes.FORBIDDEN, "You have not requested this EVTOL");
+    }
     
 
     const evtol = await db.eVTOLDevice.findUnique({
@@ -348,7 +339,9 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
               },
           })
           if(!evtol){
-              throw new CustomError(StatusCodes.NOT_FOUND, "Evtol Device not Found");
+              throw new CustomError(
+                StatusCodes.NOT_FOUND, 
+                "Evtol Device not Found");
           }
       
           return evtol.medications

@@ -7,5 +7,7 @@ export interface MedicationService{
     getMedicationByCode(code: string): Promise<Medication | null>
     updateMedication(code: string, data: Partial<CreateMedicationDTO>): Promise<Medication>
     deleteMedication(code: string): Promise<void>
+    getLoadedMedications(EvtolSerialNo: string, userId: number): Promise<Medication[]>
+    getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]>
 
 }
