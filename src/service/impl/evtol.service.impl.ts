@@ -56,11 +56,31 @@ export class EvtolServiceImpl implements EvtolService {
  })
     return rejectedRequest
   }
-  getAllLoadedEvtol(): Promise<eVTOLDevice[]> {
-    throw new Error("Method not implemented.");
+
+ async getAllLoadedEvtol(): Promise<eVTOLDevice[]> {
+    const loadedEvtol = await db.eVTOLDevice.findMany({
+      where: {
+        status: "LOADED",
+      },
+    })
+    return loadedEvtol;
   }
-  getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
-    throw new Error("Method not implemented.");
+
+ async getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
+    const evtol = await db.eVTOLDevice.findUnique({
+      where: {
+        serialNo: EvtolSerialNo
+      },
+      include: {
+        medications: true
+      },
+    })
+    if(!evtol){
+      throw new CustomError(
+        StatusCodes.BAD_REQUEST,
+        "No Evtols found"
+      )
+    }
   }
   getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
     throw new Error("Method not implemented.");
@@ -118,6 +138,7 @@ export class EvtolServiceImpl implements EvtolService {
  })
     return approvedRequest
   }
+
  async getEvtolBySN(serialNo: string): Promise<eVTOLDevice | null> {
     const evtol = await db.eVTOLDevice.findUnique({
         where: {
