@@ -4,6 +4,7 @@ import { EvtolService } from "../evtol.service";
 import { db } from "../../config/db";
 import { CustomError } from "../../exceptions/customError.error";
 import { StatusCodes } from "http-status-codes";
+import { constrainedMemory } from "process";
 
 export class EvtolServiceImpl implements EvtolService {
   async rejectRequestEvtol(userId: number, EvtolSerialNo: string): Promise<EvtolRequest> {
@@ -257,109 +258,87 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
   
 
   async loadEvtolWithMedication(
-    EvtolSerialNo: string,
+    evtolSerialNo: string,
     userId: number,
     medicCodes: string[]
   ): Promise<eVTOLDevice> {
-    const user = await db.user.findUnique({
-      where: {
-        id: userId
+    return await db.$transaction(async (tx) => {
+      // 1️⃣ Fetch and validate user + request
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (!user) throw new CustomError(StatusCodes.BAD_REQUEST, "User does not exist");
+  
+      const hasRequested = await tx.evtolRequest.findFirst({
+        where: { userId, evtolSerialNo }
+      });
+      if (!hasRequested) {
+        throw new CustomError(StatusCodes.FORBIDDEN, "You have not requested this EVTOL");
       }
-    })
-    if(!user){
-      throw new CustomError(StatusCodes.BAD_REQUEST,
-        "User does not exist"
-      )
-    }
-
-    const userWithRequests = await db.user.findUnique({
-      where: { id: userId },
-      include: {
-        evtolRequest: true
-       }
-    });
-    
-    if (!userWithRequests?.evtolRequest.some(evtol => evtol.evtolSerialNo === EvtolSerialNo)) {
-      throw new CustomError(StatusCodes.FORBIDDEN, "You have not requested this EVTOL");
-    }
-    
-
-    const evtol = await db.eVTOLDevice.findUnique({
-      where: {
-        serialNo: EvtolSerialNo,
-      },
-      include: {
-        medications: true,
-      },
-    });
-    if (!evtol) {
-      throw new CustomError(StatusCodes.NOT_FOUND, "Evtol Device not Found");
-    }
-    if (evtol.batteryCapacity < 25) {
-      throw new CustomError(
-        StatusCodes.BAD_REQUEST,
-        "EVTOL Battery too low for loading"
-      );
-    }
-
-    const medications = await db.medication.findMany({
-        where: {
-            code: {
-               in : medicCodes
+  
+      // 2️⃣ Fetch EVTOL & meds, validate battery and weight
+      const evtol = await tx.eVTOLDevice.findUnique({
+        where: { serialNo: evtolSerialNo },
+        include: { medications: true },
+      });
+      if (!evtol) throw new CustomError(StatusCodes.NOT_FOUND, "EVTOL not found");
+      if (evtol.batteryCapacity < 25) {
+        throw new CustomError(StatusCodes.BAD_REQUEST, "Battery too low for loading");
+      }
+  
+      const meds = await tx.medication.findMany({
+        where: { code: { in: medicCodes } }
+      });
+      if (meds.length !== medicCodes.length) {
+        throw new CustomError(StatusCodes.BAD_REQUEST, "Some medications not found");
+      }
+      const totalWeight = meds.reduce((sum, m) => sum + m.weight, 0);
+      if (totalWeight > evtol.weightLimit) {
+        throw new CustomError(
+          StatusCodes.BAD_REQUEST,
+          "Medication weight exceeds EVTOL weight limit"
+        );
+      }
+  
+      // 3️⃣ Mark meds as to‑be‑delivered
+      await tx.medication.updateMany({
+        where: { code: { in: medicCodes } },
+        data: { delivered: false },
+      });
+  
+      // 4️⃣ Insert your “loadedMedication” records
+      await tx.loadedMedication.createMany({
+        data: medicCodes.map(code => ({
+          userId,
+          evtol_serialNo: evtolSerialNo,
+          medicationCode: code
+        }))
+      });
+  
+      // 5️⃣ Set EVTOL state to LOADING
+      await tx.eVTOLDevice.update({
+        where: { serialNo: evtolSerialNo },
+        data: { status: "LOADING" },
+      });
+  
+      // 6️⃣ (Don’t block the DB! Kick off your delay asynchronously instead)
+      setTimeout(async () => {
+        await db.$transaction(async (tx2) => {
+          await tx2.eVTOLDevice.update({
+            where: { serialNo: evtolSerialNo },
+            data: {
+              medications: {
+                connect: meds.map(m => ({ id: m.id }))
+              },
+              status: "LOADED",
             }
-        }
-    })
-
-    if (medications.length !== medicCodes.length) {
-        throw new CustomError(StatusCodes.BAD_REQUEST, "Some medications not found.");
-      }
-
-    const totalWeight = medications.reduce((sum, med) => sum + med.weight, 0);
-
-    if (totalWeight > evtol.weightLimit) {
-      throw new CustomError(
-        StatusCodes.BAD_REQUEST,
-        "Medication Weight exceeds EVTOL Weight Limit."
-      );
-    }
-
-    await db.medication.updateMany({
-      where: {
-         code: {
-           in: medicCodes 
-          } 
-        },
-        data: {
-          delivered: false
-        }
-    })
-    await db.eVTOLDevice.update({
-      where: {
-        serialNo: EvtolSerialNo,
-      },
-      data: {
-        status: "LOADING",
-      },
+          });
+        });
+      }, 60_000);
+  
+      // 7️⃣ Return the “LOADING” EVTOL state immediately
+      return evtol;
     });
-    await this.delay(60000);
-
-
-    const updatedEvtol = await db.eVTOLDevice.update({
-      where: {
-        serialNo: EvtolSerialNo,
-      },
-      data: {
-        medications: {
-            connect: medications.map((med) => ({ id: med.id }))
-        },
-        status: "LOADED",
-      },
-      include: {
-        medications: true,
-      },
-    });
-    return updatedEvtol;
   }
+  
 
   async getLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
       

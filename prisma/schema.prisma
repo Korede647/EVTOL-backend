@@ -92,8 +92,8 @@ model LoadedMedication {
 
   evtol_serialNo String
   evtolDevice eVTOLDevice @relation(fields: [evtol_serialNo], references: [serialNo], onDelete: Cascade)
-  medicationId Int
-  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  medicationCode String
+  medication   Medication @relation(fields: [medicationCode], references: [code], onDelete: Cascade)
 }
 
 model BatteryHistory {
