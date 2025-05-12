@@ -2,12 +2,18 @@ import { Response, Request, NextFunction } from "express";
 import { EvtolServiceImpl } from "../service/impl/evtol.service.impl";
 import { CreateEvtolDTO } from "../dto/createEvtol.dto";
 
+
+interface loadEvtolBody {
+    medicCodes: string[]
+}
+
 export class EvtolController{
     private evtolservice: EvtolServiceImpl;
 
     constructor(){
         this.evtolservice = new EvtolServiceImpl
     }
+
 
     public createEvtol = async(
         req: Request,
@@ -52,52 +58,72 @@ export class EvtolController{
     }
 
 
-    public loadEvtolWithMedications = async(
+    public requestEvtol = async(
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<void> => {
         try{
-            // const serialNo = req.params.serialNo;
-            const {serialNo, medications} = req.body ;
+            const serialNo = req.params.serialNo
+            const userId = parseInt(req.params.id);
 
-            if (!serialNo || !medications || !Array.isArray(medications)) {
-               res.status(400).json({ message: "Invalid input data" });
-              }
-
-            const loadEvtol = await this.evtolservice.loadEvtolWithMedication(serialNo, medications);
+            const requestedEvtol = await this.evtolservice.requestEvtol(userId, serialNo);
             
             res.status(201).json({
-             message: "EVTOL successfully loaded",
-             data: loadEvtol
+             message: "EVTOL successfully requested",
+             data: requestedEvtol
             });
         }catch(error){
             next(error)
         }
     }
 
-    public getLoadedMedications = async(
+    public approveRequestedEvtol = async (
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<void> => {
         try{
-            const evtol = req.params.serialNo;
-            const getMedications = await this.evtolservice.getLoadedMedications(evtol)
+            const userId = parseInt(req.params.id);
+            const serialNo = req.params.serialNo
 
-            res.status(200).json(getMedications);
+            const approvedRequest = await this.evtolservice.approveRequestEvtol(userId, serialNo)
+
+            res.status(200).json({
+                message: "Evtol request has been approved.",
+                data: approvedRequest
+            })
         }catch(error){
             next(error)
         }
     }
 
-    public getLoadedEvtol = async(
+    public rejectRequestedEvtol = async (
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<void> => {
         try{
-            const evtols = await this.evtolservice.getLoadedEvtol()
+            const userId = parseInt(req.params.id)
+            const serialNo = req.params.serialNo
+
+            const rejectedRequest = await this.evtolservice.rejectRequestEvtol(userId, serialNo)
+
+            res.status(200).json({
+                message: "Evtol request has been rejected."
+            })
+        }catch(error){
+            next(error)
+        }
+    }
+
+    public getAllLoadedEvtol = async(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try{
+            const evtols = await this.evtolservice.getAllLoadedEvtol()
             res.status(200).json(evtols)
         }catch(error){
             next(error)
@@ -113,6 +139,30 @@ export class EvtolController{
             const evtols = await this.evtolservice.getAvailableEvtol()
             res.status(200).json(evtols)
         }catch(error){
+            next(error)
+        }
+    }
+
+    public loadEvtolWithMedications = async (
+        req: Request<any, loadEvtolBody>,
+        res: Response,
+        next: NextFunction
+    ): Promise<void>  => {
+        try{
+            const serialNo = req.params.serialNo
+            const userId = parseInt(req.params.id)
+            const medicCode = req.body
+
+              if (!serialNo || !userId|| !Array.isArray(medicCode)) {
+               res.status(400).json({ message: "Invalid input data" });
+              }
+
+           const loadEvtol = await this.evtolservice.loadEvtolWithMedication(serialNo, userId, medicCode)
+           res.status(201).json({
+            message: "Evtol loaded successfully",
+            data: loadEvtol
+           })
+        }catch (error){
             next(error)
         }
     }

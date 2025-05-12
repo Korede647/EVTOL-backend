@@ -1,4 +1,4 @@
-import { eVTOLDevice, EvtolRequest, EvtolRequestStatus, Medication, PrismaClient, STATUS } from "@prisma/client";
+import { eVTOLDevice, EvtolRequest, EvtolRequestStatus, LoadedMedication, Medication, PrismaClient, STATUS } from "@prisma/client";
 import { CreateEvtolDTO } from "../../dto/createEvtol.dto";
 import { EvtolService } from "../evtol.service";
 import { db } from "../../config/db";
@@ -67,9 +67,33 @@ export class EvtolServiceImpl implements EvtolService {
     return loadedEvtol;
   }
 
-  getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
-    throw new Error("Method not implemented.");
+  async getEvtolLoadedByUser(userId: number): Promise<eVTOLDevice[]> {
+     const user = await db.user.findUnique({
+      where: {
+        id: userId
+      }
+     })
+     if(!user){
+      throw new CustomError(StatusCodes.BAD_REQUEST, "User is not found")
+     }
+
+     const loadedEvtol = await db.loadedMedication.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        evtolDevice: true
+      }
+     })
+     if(loadedEvtol.length === 0){
+        throw new CustomError(
+          StatusCodes.ACCEPTED,
+          "User has no loaded Evtol."
+        )
+     }
+     return loadedEvtol.map((loaded) => loaded.evtolDevice);
   }
+
   async requestEvtol(userId: number, EvtolSerialNo:string): Promise<EvtolRequest> {
     const user = await db.user.findUnique({
       where: {
@@ -233,29 +257,7 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       },
     });
     return evtol;
-  }
-
-  // async const loadMedication = async (userId: number, medicationId: number) => {
-  //   const loadedMedication = await db.medication.create({
-  //     data: {
-  //       user: { connect: { id: userId } },
-  //       medication: { connect: { id: medicationId } },
-  //     },
-  //   });
-  //   return loadedMedication;
-  // };
-
-  // const loadMedication = async (userId: number, medicationId: number) => {
-  //   const loadedMedication = await prisma.loadedMedication.create({
-  //     data: {
-  //       user: { connect: { id: userId } },
-  //       medication: { connect: { id: medicationId } },
-  //     },
-  //   });
-  //   return loadedMedication;
-  // };
-  
-  
+  }  
 
   async loadEvtolWithMedication(
     evtolSerialNo: string,
@@ -338,39 +340,6 @@ async getAllEvtol(): Promise<eVTOLDevice[]> {
       return evtol;
     });
   }
-  
-
-  async getLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
-      
-          const evtol = await db.eVTOLDevice.findFirst({
-              where: {
-                  serialNo: EvtolSerialNo,
-                  status: "LOADED"
-              },
-              include: {
-                  medications: true,
-              },
-          })
-          if(!evtol){
-              throw new CustomError(
-                StatusCodes.NOT_FOUND, 
-                "Evtol Device not Found");
-          }
-      
-          return evtol.medications
-      
-        }
-
-
-        async getLoadedEvtol(): Promise<eVTOLDevice[]>{
-          const loadedEvtol = await db.eVTOLDevice.findMany({
-            where:{
-              status: 
-             STATUS.LOADED,
-          }
-          })
-          return loadedEvtol;
-        }
 
   async getAvailableEvtol(): Promise<eVTOLDevice[]> {
     const availableEvtol = await db.eVTOLDevice.findMany({

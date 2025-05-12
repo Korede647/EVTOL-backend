@@ -67,6 +67,35 @@ export class MedicController {
                 next(error)
             }
         }
+
+        public getLoadedMedications = async (
+            req: Request,
+            res: Response,
+            next: NextFunction
+        ): Promise<void> => {
+            try{
+                const userId = parseInt(req.params.id);
+                const evtolSerialNo = req.params.serialNo
+                const loadedMedication = await this.medicationservice.getLoadedMedications(evtolSerialNo, userId)
+                res.status(200).json(loadedMedication)
+            }catch(error){
+                next(error)
+            }
+        }
+
+        public getAllLoadedMedications = async(
+            req: Request,
+            res: Response,
+            next: NextFunction
+        ): Promise<void> => {
+            try{
+                const evtolSerialNo = req.params.serialNo;
+                const allLoadedMedics = await this.medicationservice.getAllLoadedMedications(evtolSerialNo)
+                res.status(200).json(allLoadedMedics)
+            }catch(error){
+                next(error)
+            }
+        }
       
         public updateMedication = async(
             req: Request,

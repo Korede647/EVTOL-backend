@@ -23,6 +23,7 @@ export class MedicationServiceImpl implements MedicationService{
     const evtol = await db.eVTOLDevice.findUnique({
       where: {
         serialNo: EvtolSerialNo,
+        status: "LOADED"
       },
       include: {
         medications: true
@@ -55,7 +56,8 @@ export class MedicationServiceImpl implements MedicationService{
   async getAllLoadedMedications(EvtolSerialNo: string): Promise<Medication[]> {
       const evtol = await db.eVTOLDevice.findUnique({
         where: {
-          serialNo: EvtolSerialNo
+          serialNo: EvtolSerialNo,
+          status: "LOADED"
         },
         include: {
           medications: true
